@@ -1,0 +1,184 @@
+'''
+* Name         : Final Project - Dice Roller
+* Author       : David Shoup
+* Created      : 7/25/24
+* Course       : CIS189
+* IDE          : VSCode
+* Description  : This code simulates the rolling of dice for a Table Top Roll Playing game
+*   The program takes in the number of dice and the sides for that die, returns a randomized result based on those rolls
+*   Features: 
+        add a modifier 
+        modify the roll with advantage or disadvantage 
+        enter a target number with roll high or roll low to check for success/failure
+        drop the lowest roll
+*   Call outs: Natrual 1, Natural 20, Exploding dice! 
+*
+* Academic Honesty: I attest that this is my original work.
+* I have not used unauthorized source code, either modified or
+* unmodified.       
+'''
+import tkinter as tk
+from random import randint
+
+class DiceRoller: # class 
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Dice Roller")
+
+        # Labels and Entries: GUI components and User Input
+        self.nDice_label = tk.Label(self.root, text="Enter the number of dice:")
+        self.nDice_label.grid(row=0)
+        self.nDice_entry = tk.Entry(self.root)
+        self.nDice_entry.grid(row=0, column=1)
+
+        self.nSides_label = tk.Label(self.root, text="Enter the number of sides for the dice:")
+        self.nSides_label.grid(row=1)
+        self.nSides_entry = tk.Entry(self.root)
+        self.nSides_entry.grid(row=1, column=1)
+
+        self.modifier_label = tk.Label(self.root, text="Enter a modifier (e.g. +1 or -1):")
+        self.modifier_label.grid(row=2)
+        self.modifier_entry = tk.Entry(self.root)
+        self.modifier_entry.grid(row=2, column=1)
+
+        self.target_label = tk.Label(self.root, text="Enter a Difficulty Class(DC) or Armor Class(AC) (e.g. 10 or 15):")
+        self.target_label.grid(row=5)
+        self.target_entry = tk.Entry(self.root)
+        self.target_entry.grid(row=5, column=1)
+
+        # Radio buttons for Advantage and Disadvantage
+        self.advantage_var = tk.IntVar()
+        self.straight_button = tk.Radiobutton(self.root, text="Straight", variable=self.advantage_var, value=0)
+        self.advantage_button = tk.Radiobutton(self.root, text="Advantage", variable=self.advantage_var, value=1)
+        self.disadvantage_button = tk.Radiobutton(self.root, text="Disadvantage", variable=self.advantage_var, value=2)
+        self.straight_button.grid(row=3, column=0)
+        self.advantage_button.grid(row=3, column=1)
+        self.disadvantage_button.grid(row=3, column=2)
+
+        # Check box to drop the lowest
+        self.var = tk.IntVar() 
+        self.checkbutton = tk.Checkbutton(self.root, text='Remove Lowest Roll', variable=self.var, onvalue=1, offvalue=0).grid(row=4)
+
+        # Radio Buttons for Roll High or Roll Low
+        self.target_var = tk.IntVar()
+        self.roll_high_button = tk.Radiobutton(self.root, text="Roll High", variable=self.target_var, value=0)
+        self.roll_low_button = tk.Radiobutton(self.root, text="Roll Low", variable=self.target_var, value=1)
+        self.roll_high_button.grid(row=6, column=0)
+        self.roll_low_button.grid(row=6, column=1)
+
+        # Buttons
+        self.roll_button = tk.Button(self.root, text="Roll", command=self.roll_dice)
+        self.roll_button.grid(row=11, column=0)
+
+        self.clear_button = tk.Button(self.root, text="Clear", command=self.clear_results)
+        self.clear_button.grid(row=11, column=1)
+
+        self.exit_button = tk.Button(self.root, text="Exit", command=self.root.destroy)
+        self.exit_button.grid(row=11, column=2)
+
+        # Results label
+        self.results_label = tk.Label(self.root, text="")
+        self.results_label.grid(row=8)
+
+        self.target_results_label = tk.Label(self.root, text="")
+        self.target_results_label.grid(row=9)        
+
+    def roll_dice(self):
+        try:
+            nDice = int(self.nDice_entry.get())
+            nSides = int(self.nSides_entry.get())
+            modifier = int(self.modifier_entry.get()) if self.modifier_entry.get() else 0 #Input Validation
+            target = int(self.target_entry.get()) if self.target_entry.get() else 0 #Input Validation
+
+            # Decision Structure: If, if-else, if-elif 
+
+            if self.advantage_var.get() == 0:
+                rolls = [randint(1, nSides) for _ in range(nDice)] # Collection: List/tuple and Looping Structure: For/while loop 
+                if self.var.get() == 1:
+                    rolls.remove(min(rolls))
+                elif self.var.get() == 0:
+                    rolls = rolls
+                total = sum(rolls) + modifier
+                if nSides != 20 and all(result == nSides for result in rolls):
+                    result_text = f"Exploding Dice! Total: {total}"
+                elif nSides == 20 and nDice == 1 and 20 in rolls:
+                    result_text = f"Natural 20! Total: {total}"
+                elif nSides == 20 and nDice == 1 and 1 in rolls:
+                    result_text = f"Natural 1! Total: {total}"
+                else:
+                    result_text = f"Total: {total}"
+            elif self.advantage_var.get()== 1:
+                roll1 = [randint(1, nSides) for _ in range(nDice)] # Collection: List/tuple and Looping Structure: For/while loop 
+                if self.var.get() == 1:
+                    roll1.remove(min(roll1))
+                elif self.var.get() == 0:
+                    roll1 = roll1                
+                roll2 = [randint(1, nSides) for _ in range(nDice)] # Collection: List/tuple and Looping Structure: For/while loop 
+                if self.var.get() == 1:
+                    roll2.remove(min(roll2))
+                elif self.var.get() == 0:
+                    roll2 = roll2                   
+                total = max(sum(roll1) + modifier, sum(roll2) + modifier) 
+                if nSides != 20 and max(all(result == nSides for result in roll1), all(result == nSides for result in roll2)):
+                    result_text = f"Exploding Dice! Total: {total}"
+                elif nSides == 20 and nDice == 1 and 20 == total - modifier:
+                    result_text = f"Natural 20! Total: {total}"
+                elif nSides == 20 and nDice == 1 and 1 == total - modifier:
+                    result_text = f"Natural 1! Total: {total}"
+                else:
+                    result_text = f"Total: {total}"                
+            elif self.advantage_var.get()== 2:
+                roll1 = [randint(1, nSides) for _ in range(nDice)] # Collection: List/tuple and Looping Structure: For/while loop 
+                if self.var.get() == 1:
+                    roll1.remove(min(roll1))
+                elif self.var.get() == 0:
+                    roll1 = roll1 
+                roll2 = [randint(1, nSides) for _ in range(nDice)] # Collection: List/tuple and Looping Structure: For/while loop 
+                if self.var.get() == 1:
+                    roll2.remove(min(roll2))
+                elif self.var.get() == 0:
+                    roll2 = roll2                
+                total = min(sum(roll1) + modifier, sum(roll2) + modifier) 
+                if nSides != 20 and min(all(result == nSides for result in roll1), all(result == nSides for result in roll2)):
+                    result_text = f"Exploding Dice! Total: {total}"
+                elif nSides == 20 and nDice == 1 and 20 == total - modifier:
+                    result_text = f"Natural 20! Total: {total}"
+                elif nSides == 20 and nDice == 1 and 1 == total - modifier:
+                    result_text = f"Natural 1! Total: {total}"
+                else:
+                    result_text = f"Total: {total}"                
+
+            if target == 0:
+                target_results = ''
+            elif self.target_var.get() == 0:
+                if total >= target:
+                    target_results = "Success!"
+                else:
+                    target_results = "Failure!"
+            elif self.target_var.get() == 1:
+                if total <= target:
+                    target_results = "Success!"
+                else:
+                    target_results = "Failure!"                    
+
+            self.results_label.config(text=result_text)
+            self.target_results_label.config(text=target_results)
+
+        except ValueError:  #Input Validation/Exception Handling
+            self.results_label.config(text="Invalid input. Please enter valid numbers.")
+
+    def clear_results(self):
+        self.results_label.config(text="")
+        self.target_results_label.config(text="")
+        self.nDice_entry.delete(0, "end")
+        self.modifier_entry.delete(0, "end")
+        self.nSides_entry.delete(0, "end")
+        self.target_entry.delete(0, "end") 
+       
+
+    def run(self):
+        self.root.mainloop()
+
+if __name__ == "__main__":
+    roller = DiceRoller()
+    roller.run()
